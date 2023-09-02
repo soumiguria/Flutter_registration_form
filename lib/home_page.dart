@@ -1,6 +1,7 @@
-import 'package:flutter_task_broken/contact.dart';
 import 'package:flutter/material.dart';
-import 'package:snippet_coder_utils/FormHelper.dart';
+
+import 'contact.dart';
+import 'location.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -15,32 +16,6 @@ class _HomePageState extends State<HomePage> {
   List<Contact> contacts = List.empty(growable: true);
 
   int selectedIndex = -1;
-
-  List<dynamic> countries = [];
-  List<dynamic> statesMasters = [];
-  List<dynamic> states = [];
-
-  String? countryId;
-  String? stateId;
-
-  @override
-  void initState() {
-    super.initState();
-
-    this.countries.add({"id": 1, "label": "India"});
-    this.countries.add({"id": 2, "label": "UAE"});
-
-    this.statesMasters = [
-      {"ID": 1, "Name": "Assam", "ParentId": 1},
-      {"ID": 2, "Name": "Delhi", "ParentId": 1},
-      {"ID": 3, "Name": "Bihar", "ParentId": 1},
-      {"ID": 4, "Name": "Kolkata", "ParentId": 1},
-      {"ID": 1, "Name": "Abu Dhabi", "ParentId": 2},
-      {"ID": 2, "Name": "Dubai", "ParentId": 2},
-      {"ID": 3, "Name": "Sharjah", "ParentId": 2},
-      {"ID": 4, "Name": "Ajman", "ParentId": 2},
-    ];
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -76,58 +51,6 @@ class _HomePageState extends State<HomePage> {
                       ))),
             ),
             const SizedBox(height: 10),
-            FormHelper.dropDownWidgetWithLabel(
-              context,
-              "Country",
-              "Select Country",
-              this.countryId,
-              this.countries,
-                  (onChangedVal) {
-                this.countryId = onChangedVal;
-                print("Selected Country: $onChangedVal");
-
-                this.states = this
-                    .statesMasters
-                    .where(
-                      (stateItem) =>
-                  stateItem["ParentId"].toString() ==
-                      onChangedVal.toString(),
-                )
-                    .toList();
-                this.stateId = null;
-              },
-                  (onValidatedVal) {
-                if (onValidatedVal == null) {
-                  return 'Please Select Country';
-                }
-                return null;
-              },
-              borderColor: Theme.of(context).primaryColor,
-              borderFocusColor: Theme.of(context).primaryColor,
-              borderRadius: 10,
-              optionValue: "id",
-              optionLabel: "label",
-            ),
-            FormHelper.dropDownWidgetWithLabel(
-              context,
-              "State",
-              "Select State",
-              this.stateId,
-              this.states,
-                  (onChangedVal) {
-                this.stateId = onChangedVal;
-                print("Selected State: $onChangedVal");
-              },
-                  (onValidate) {
-                return null;
-              },
-              borderColor: Theme.of(context).primaryColor,
-              borderFocusColor: Theme.of(context).primaryColor,
-              borderRadius: 10,
-              optionValue: "ID",
-              optionLabel: "Name",
-            ),
-            const SizedBox(height: 10),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
@@ -146,6 +69,18 @@ class _HomePageState extends State<HomePage> {
                       //
                     },
                     child: const Text('Save')),
+                ElevatedButton(
+                    onPressed: () {
+                      //
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const LocationPage(),
+                        ),
+                      );
+                      //
+                    },
+                    child: const Text('Next')),
                 ElevatedButton(
                     onPressed: () {
                       //
