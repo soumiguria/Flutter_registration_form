@@ -1,6 +1,10 @@
 import 'package:flutter_task_broken/contact.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_task_broken/model/comment.dart';
+import 'package:flutter_task_broken/model/post.dart';
+import 'package:flutter_task_broken/services/remoteservice.dart';
 import 'package:snippet_coder_utils/FormHelper.dart';
+import 'package:dropdown_button2/dropdown_button2.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -12,6 +16,9 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   TextEditingController nameController = TextEditingController();
   TextEditingController contactController = TextEditingController();
+  TextEditingController countryController = TextEditingController();
+  TextEditingController stateController = TextEditingController();
+
   List<Contact> contacts = List.empty(growable: true);
 
   int selectedIndex = -1;
@@ -25,6 +32,8 @@ class _HomePageState extends State<HomePage> {
 
   @override
   void initState() {
+    getPosts();
+
     super.initState();
 
     this.countries.add({"id": 1, "label": "India"});
@@ -40,6 +49,32 @@ class _HomePageState extends State<HomePage> {
       {"ID": 3, "Name": "Sharjah", "ParentId": 2},
       {"ID": 4, "Name": "Ajman", "ParentId": 2},
     ];
+  }
+
+  // my code
+  List<Posts>? posts = [];
+  List<Comments>? comments = [];
+
+  // get category
+  getPosts() async {
+    List<Posts>? response = await RemoteService().getPosts();
+
+    setState(() {
+      stateController.clear();
+      comments = [];
+
+      posts = response;
+    });
+  }
+
+  // get Sub category
+  getSubCategory(String commentID) async {
+    List<Comments>? response =
+    await RemoteService().getComment(commentId: commentID);
+
+    setState(() {
+      comments = response;
+    });
   }
 
   @override
@@ -76,57 +111,123 @@ class _HomePageState extends State<HomePage> {
                       ))),
             ),
             const SizedBox(height: 10),
-            FormHelper.dropDownWidgetWithLabel(
-              context,
-              "Country",
-              "Select Country",
-              this.countryId,
-              this.countries,
-                  (onChangedVal) {
-                this.countryId = onChangedVal;
-                print("Selected Country: $onChangedVal");
 
-                this.states = this
-                    .statesMasters
-                    .where(
-                      (stateItem) =>
-                  stateItem["ParentId"].toString() ==
-                      onChangedVal.toString(),
-                )
-                    .toList();
-                this.stateId = null;
-              },
-                  (onValidatedVal) {
-                if (onValidatedVal == null) {
-                  return 'Please Select Country';
+            // my code starts here
+            const SizedBox(height: 10),
+            DropdownButtonFormField2<String>(
+              isExpanded: true,
+              decoration: InputDecoration(
+                // Add Horizontal padding using menuItemStyleData.padding so it matches
+                // the menu padding when button's width is not specified.
+                contentPadding: const EdgeInsets.symmetric(vertical: 16),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(5.0),
+                ),
+                // Add more decoration..
+              ),
+              hint: const Text(
+                'Choose Country',
+                style: TextStyle(fontSize: 14),
+              ),
+              items: posts?.map((items) {
+                return DropdownMenuItem<String>(
+                  value: items.id.toString(),
+                  child: Text(items.title),
+                );
+              }).toList() ??
+                  [],
+              validator: (value) {
+                if (value == null) {
+                  return 'Please select any one option.';
                 }
                 return null;
               },
-              borderColor: Theme.of(context).primaryColor,
-              borderFocusColor: Theme.of(context).primaryColor,
-              borderRadius: 10,
-              optionValue: "id",
-              optionLabel: "label",
-            ),
-            FormHelper.dropDownWidgetWithLabel(
-              context,
-              "State",
-              "Select State",
-              this.stateId,
-              this.states,
-                  (onChangedVal) {
-                this.stateId = onChangedVal;
-                print("Selected State: $onChangedVal");
+              onChanged: (value) {
+                //Do something when selected item is changed.
+                setState(() {
+                  countryController.text = value.toString();
+                  getSubCategory(countryController.text);
+                });
               },
-                  (onValidate) {
+              buttonStyleData: const ButtonStyleData(
+                padding: EdgeInsets.only(right: 8),
+              ),
+              iconStyleData: const IconStyleData(
+                icon: Icon(
+                  Icons.arrow_drop_down,
+                  color: Colors.black45,
+                ),
+                iconSize: 24,
+              ),
+              dropdownStyleData: DropdownStyleData(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(10.0),
+                ),
+              ),
+              menuItemStyleData: const MenuItemStyleData(
+                padding: EdgeInsets.symmetric(horizontal: 16),
+              ),
+            ),
+
+            const SizedBox(height: 24.0),
+
+            // second dropdown
+
+            DropdownButtonFormField2<String>(
+              isExpanded: true,
+              decoration: InputDecoration(
+                // Add Horizontal padding using menuItemStyleData.padding so it matches
+                // the menu padding when button's width is not specified.
+                contentPadding: const EdgeInsets.symmetric(vertical: 16),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(5.0),
+                ),
+              ),
+              hint: const Text(
+                'Choose State',
+                style: TextStyle(fontSize: 14),
+              ),
+              items: comments?.map((items) {
+                return DropdownMenuItem<String>(
+                  value: items.body,
+                  child: Text(items.name),
+                );
+              }).toList() ??
+                  [],
+              validator: (value) {
+                if (value == null) {
+                  return 'Please select any one option.';
+                }
                 return null;
               },
-              borderColor: Theme.of(context).primaryColor,
-              borderFocusColor: Theme.of(context).primaryColor,
-              borderRadius: 10,
-              optionValue: "ID",
-              optionLabel: "Name",
+              onChanged: (value) {
+                //Do something when selected item is changed.
+                setState(() {
+                  stateController.text = value.toString();
+                });
+              },
+              buttonStyleData: const ButtonStyleData(
+                padding: EdgeInsets.only(right: 8),
+              ),
+              iconStyleData: const IconStyleData(
+                icon: Icon(
+                  Icons.arrow_drop_down,
+                  color: Colors.black45,
+                ),
+                iconSize: 24,
+              ),
+              dropdownStyleData: DropdownStyleData(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(10.0),
+                ),
+              ),
+              menuItemStyleData: const MenuItemStyleData(
+                padding: EdgeInsets.symmetric(horizontal: 16),
+              ),
             ),
+
+            // my code ends here
+
             const SizedBox(height: 10),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
