@@ -61,8 +61,8 @@ class _LocationPageState extends State<LocationPage> {
               onChanged: (value) {
                 setState(() {
                   selectedDistrict = value;
-                  selectedState = null; // Reset state selection
-                  selectedPincode = null; // Reset pincode selection
+                  selectedState = null;
+                  selectedPincode = null;
                 });
               },
             ),
@@ -83,7 +83,7 @@ class _LocationPageState extends State<LocationPage> {
                 onChanged: (value) {
                   setState(() {
                     selectedState = value;
-                    selectedPincode = null; // Reset pincode selection
+                    selectedPincode = null;
                   });
                 },
               ),
