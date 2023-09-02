@@ -1,7 +1,10 @@
+import 'package:flutter_task_broken/contact.dart';
 import 'package:flutter/material.dart';
-
-import 'contact.dart';
-import 'location.dart';
+import 'package:flutter_task_broken/model/comment.dart';
+import 'package:flutter_task_broken/model/post.dart';
+import 'package:flutter_task_broken/services/remoteservice.dart';
+import 'package:snippet_coder_utils/FormHelper.dart';
+import 'package:dropdown_button2/dropdown_button2.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -13,9 +16,66 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   TextEditingController nameController = TextEditingController();
   TextEditingController contactController = TextEditingController();
+  TextEditingController countryController = TextEditingController();
+  TextEditingController stateController = TextEditingController();
+
   List<Contact> contacts = List.empty(growable: true);
 
   int selectedIndex = -1;
+
+  List<dynamic> countries = [];
+  List<dynamic> statesMasters = [];
+  List<dynamic> states = [];
+
+  String? countryId;
+  String? stateId;
+
+  @override
+  void initState() {
+    getPosts();
+
+    super.initState();
+
+    this.countries.add({"id": 1, "label": "India"});
+    this.countries.add({"id": 2, "label": "UAE"});
+
+    this.statesMasters = [
+      {"ID": 1, "Name": "Assam", "ParentId": 1},
+      {"ID": 2, "Name": "Delhi", "ParentId": 1},
+      {"ID": 3, "Name": "Bihar", "ParentId": 1},
+      {"ID": 4, "Name": "Kolkata", "ParentId": 1},
+      {"ID": 1, "Name": "Abu Dhabi", "ParentId": 2},
+      {"ID": 2, "Name": "Dubai", "ParentId": 2},
+      {"ID": 3, "Name": "Sharjah", "ParentId": 2},
+      {"ID": 4, "Name": "Ajman", "ParentId": 2},
+    ];
+  }
+
+  // my code
+  List<Posts>? posts = [];
+  List<Comments>? comments = [];
+
+  // get category
+  getPosts() async {
+    List<Posts>? response = await RemoteService().getPosts();
+
+    setState(() {
+      stateController.clear();
+      comments = [];
+
+      posts = response;
+    });
+  }
+
+  // get Sub category
+  getSubCategory(String commentID) async {
+    List<Comments>? response =
+    await RemoteService().getComment(commentId: commentID);
+
+    setState(() {
+      comments = response;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -51,6 +111,124 @@ class _HomePageState extends State<HomePage> {
                       ))),
             ),
             const SizedBox(height: 10),
+
+            // my code starts here
+            const SizedBox(height: 10),
+            DropdownButtonFormField2<String>(
+              isExpanded: true,
+              decoration: InputDecoration(
+                // Add Horizontal padding using menuItemStyleData.padding so it matches
+                // the menu padding when button's width is not specified.
+                contentPadding: const EdgeInsets.symmetric(vertical: 16),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(5.0),
+                ),
+                // Add more decoration..
+              ),
+              hint: const Text(
+                'Choose Country',
+                style: TextStyle(fontSize: 14),
+              ),
+              items: posts?.map((items) {
+                return DropdownMenuItem<String>(
+                  value: items.id.toString(),
+                  child: Text(items.title),
+                );
+              }).toList() ??
+                  [],
+              validator: (value) {
+                if (value == null) {
+                  return 'Please select any one option.';
+                }
+                return null;
+              },
+              onChanged: (value) {
+                //Do something when selected item is changed.
+                setState(() {
+                  countryController.text = value.toString();
+                  getSubCategory(countryController.text);
+                });
+              },
+              buttonStyleData: const ButtonStyleData(
+                padding: EdgeInsets.only(right: 8),
+              ),
+              iconStyleData: const IconStyleData(
+                icon: Icon(
+                  Icons.arrow_drop_down,
+                  color: Colors.black45,
+                ),
+                iconSize: 24,
+              ),
+              dropdownStyleData: DropdownStyleData(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(10.0),
+                ),
+              ),
+              menuItemStyleData: const MenuItemStyleData(
+                padding: EdgeInsets.symmetric(horizontal: 16),
+              ),
+            ),
+
+            const SizedBox(height: 24.0),
+
+            // second dropdown
+
+            DropdownButtonFormField2<String>(
+              isExpanded: true,
+              decoration: InputDecoration(
+                // Add Horizontal padding using menuItemStyleData.padding so it matches
+                // the menu padding when button's width is not specified.
+                contentPadding: const EdgeInsets.symmetric(vertical: 16),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(5.0),
+                ),
+              ),
+              hint: const Text(
+                'Choose State',
+                style: TextStyle(fontSize: 14),
+              ),
+              items: comments?.map((items) {
+                return DropdownMenuItem<String>(
+                  value: items.body,
+                  child: Text(items.name),
+                );
+              }).toList() ??
+                  [],
+              validator: (value) {
+                if (value == null) {
+                  return 'Please select any one option.';
+                }
+                return null;
+              },
+              onChanged: (value) {
+                //Do something when selected item is changed.
+                setState(() {
+                  stateController.text = value.toString();
+                });
+              },
+              buttonStyleData: const ButtonStyleData(
+                padding: EdgeInsets.only(right: 8),
+              ),
+              iconStyleData: const IconStyleData(
+                icon: Icon(
+                  Icons.arrow_drop_down,
+                  color: Colors.black45,
+                ),
+                iconSize: 24,
+              ),
+              dropdownStyleData: DropdownStyleData(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(10.0),
+                ),
+              ),
+              menuItemStyleData: const MenuItemStyleData(
+                padding: EdgeInsets.symmetric(horizontal: 16),
+              ),
+            ),
+
+            // my code ends here
+
+            const SizedBox(height: 10),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
@@ -69,18 +247,6 @@ class _HomePageState extends State<HomePage> {
                       //
                     },
                     child: const Text('Save')),
-                ElevatedButton(
-                    onPressed: () {
-                      //
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const LocationPage(),
-                        ),
-                      );
-                      //
-                    },
-                    child: const Text('Next')),
                 ElevatedButton(
                     onPressed: () {
                       //
